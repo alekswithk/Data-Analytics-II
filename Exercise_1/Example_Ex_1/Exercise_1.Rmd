@@ -1,0 +1,85 @@
+---
+title: "Data Analytics II: Empirical Research Methods - Exercise 1"
+author:
+- Aleksandar Maric
+- Akando Räderer
+- Daniel Margolin
+date: "28.02.2026"
+output:
+  pdf_document:
+    latex_engine: xelatex
+---
+
+### Exercise 1a
+
+```{r setup, include=FALSE}
+library(dplyr)
+library(ggplot2)
+options(tinytex.verbose = TRUE)
+```
+
+
+```{r}
+data <- read.csv("Ex1.csv")
+summary(data)
+```
+
+Renaming the misspelled columns with
+
+```{r}
+data <- data |> rename(color=c0lor)
+data <- data |> rename(price=prise)
+```
+
+Removing an unnecessairy information from the data set -> color
+
+```{r}
+data <- data |> select(-color)
+```
+
+Now we check for missing values 
+
+```{r}
+skimr::skim(data)
+```
+and wee see, that in the column "clarity" there are almost 5k missing entries. Removing them finally gives us a clean dataset.
+
+```{r}
+data <- data |> filter(!is.na(clarity))
+```
+
+Now we compute the averages and the standard deviations:
+
+```{r}
+mean(data$carat)
+sd(data$carat)
+mean(data$price)
+sd(data$price)
+```
+And finally produce a density plot to visualize the distribution of price per carat, while grouped by the cut. 
+
+```{r}
+data$cut <- factor(data$cut, levels = c("Fair", "Good", "Very Good", "Premium", "Ideal"), ordered = TRUE)
+```
+
+With `ggplot` we can plot the graphs. With `facet_wrap()` we can create plots for each category we just split the data into. The scale is also changed to logarithmic for better readability.
+
+```{r}
+ggplot(data = data, aes(x=price/carat))+
+  geom_density()+
+  facet_wrap(~(cut), scale = "free")+
+  scale_x_log10()+
+  ylim(0, 11) + 
+  ggtitle("Distribution of Diamond Price per Carat: grouped by cut.") + 
+  xlab("Diamond Price per Carat U$ - LOG 10 Scale") + 
+  ylab("Density (scaled)") + 
+  theme_minimal()
+```
+
+
+From the chart, we can observe that the price per carat increases with cut quality. However, this result does not imply that cut quality increases price / carat causally. Further analysis would be needed to draw conclusions in this regard. You will learn the tools to conduct such analyses during the rest of the semester.
+
+
+
+
+
