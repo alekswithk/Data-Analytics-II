@@ -12,29 +12,106 @@ library(ggplot2)
 ```
 # Assignment 2
 
-## Exercise 1: Data preparation
+## 1. Data preparation
 
-### 1. 
+### 1. Read-in, variable construction
+
 At first we read-in the `.csv` files with `read.csv`. After a look at both datasets, we observe that `data_cleaned` is ready to go. However in `data_surnames` there is one row for Sri Lanka, which we will filter out.
 
 ```{r}
-data_cleaned <- read.csv("data/ps2_cantons_cleaned.csv")
+data_cleaned <- read.csv("data/ps2_cantons_cleaned.csv", sep = ";")
 data_surnames <- read.csv("data/ps2_cantons_surnames.csv")
 
+data_cleaned
 data_surnames
 
-skimr::skim(data_cleaned)
-
-
-data_surnames <- data_surnames |> filter(canton != "Sri Lanka")
+data_surnames <- data_surnames |> filter(canton != "Sri Lanka") |> arrange(canton) #arranged it for better readability
 ```
 
-Then we need to create the new variable `surname` and then drop the existing variables for `share_mueller`and `share_maier`. 
+Then we need to create the new variable `surname` and drop the existing variables for `share_mueller`and `share_maier`. 
 
 ```{r}
 data_surnames <- data_surnames |> mutate(surname=share_mueller+share_maier) |> 
   select(-share_mueller, -share_maier)
-
-data_surnames
 ```
+
+
+### 2. Merging datasets
+
+Before joining, we align the canton name that differs between the two datasets: `data_cleaned` uses `"St. Gallen"` while `data_surnames` uses `"Sankt Gallen"`.
+
+```{r}
+
+data_surnames <- data_surnames |>
+  mutate(canton = ifelse(canton == "Sankt Gallen", "St. Gallen", canton))
+
+
+data_joint <- data_cleaned |>
+  left_join(data_surnames, by = "canton")
+```
+
+
+### 3. Data checks
+
+We perform data checks: no missing `surname` values after the join, exactly 26 unique cantons, and only the required variables in the final dataset.
+
+```{r}
+sum(is.na(data_joint$surname))
+
+n_distinct(data_joint$canton)
+
+data_joint <- data_joint |> select(canton, gdp, population, immigration, surname)
+
+head(data_joint)
+```
+
+There are no missing surnames and exactly 26 cantons are present in the dataset $\checkmark$.
+
+## 2. Estimation of an univariate model (Effect of gdp on surname)
+
+### 1. 
+
+The regression equation for this specific model is:
+
+$$gdp_i = \beta_0 + \beta_1 \cdot surname_i + u_i$$
+where $gdp_i$ is the total GDP of canton $i$ in million CHF, $surname_i$ is the share of the cantonal population with the surname Mueller or Maier in percent, $\beta_0$ is the intercept, $\beta_1$ is the slope coeff., and $u_i$ is the error term.
+
+
+### 2. Estimation of model coefficients
+
+```{r}
+model_surname <- lm(gdp ~ surname, data = data_joint)
+print(model_surname$coefficients)
+```
+**Intercept ($\hat{\beta}_0$):** The estimated intercept is 10077.28. 
+
+$\rightarrow$ This represents the predicted GDP (in million CHF) of a canton where the share of people named Mueller or Maier is zero. Since a zero surname share is unrealistic, the intercept has limited economic interpretation on its own.
+
+**Slope ($\hat{\beta}_1$):** The estimated slope on `surname` is 449549.89 
+
+$\rightarrow$ This means that a one unit increase in the share of people with the surname Mueller or Maier is associated with an increase in GDP of $\approx 450$ million CHF. Note that the coefficient appears large because a "one unit increase" in `surname` would mean going from 0% to 100% of the population being named Mueller or Maier — an impossible scenario — so the number should be interpreted at realistic, much smaller increments (explained by Claude.ai).
+
+
+### 3. Prediction of `gdp` based on average shares of surnames
+
+```{r}
+avg_surname <- mean(data_joint$surname)
+avg_surname
+
+# Predict GDP at the average surname share
+predicted_gdp <- as.numeric(model_surname$coefficients[1] + model_surname$coefficients[2] * avg_surname)
+predicted_gdp
+
+# AI proposed using predict(), which gives the same result
+```
+
+At the average cantonal surname share of 0.041%, the model predicts a GDP of approximately 28'656 million CHF.
+
+
+
+
+
+
+
+
 
