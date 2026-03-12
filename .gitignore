@@ -1,5 +1,5 @@
 #Files that git should ignore 
-*.DS_Store
+.DS_Store
 .Rproj.user
 .RData
 .Rhistory
