@@ -105,7 +105,7 @@ predicted_gdp
 # AI proposed using predict(), which gives the same result
 ```
 
-At the average cantonal surname share of 0.041%, the model predicts a GDP of approximately 28'656 million CHF.
+At the average cantonal surname share of 0.041%, the model predicts a GDP of approximately 28'656 million CHF
 
 
 
