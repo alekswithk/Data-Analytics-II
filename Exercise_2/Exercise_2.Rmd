@@ -67,14 +67,14 @@ head(data_joint)
 
 There are no missing surnames and exactly 26 cantons are present in the dataset $\checkmark$.
 
-## 2. Estimation of an univariate model (Effect of gdp on surname)
+## 2. Estimation of an univariate model (Effect of surname on gdp)
 
-### 1. 
+### 1. Regression equation
 
 The regression equation for this specific model is:
 
-$$gdp_i = \beta_0 + \beta_1 \cdot surname_i + u_i$$
-where $gdp_i$ is the total GDP of canton $i$ in million CHF, $surname_i$ is the share of the cantonal population with the surname Mueller or Maier in percent, $\beta_0$ is the intercept, $\beta_1$ is the slope coeff., and $u_i$ is the error term.
+$$\text{gdp}_i = \beta_0 + \beta_1 \cdot \text{surname}_i + u_i$$
+where $\text{gdp}_i$ is the total GDP of canton $i$ in million CHF, $\text{surname}_i$ is the share of the cantonal population with the surname Mueller or Maier in percent, $\beta_0$ is the intercept, $\beta_1$ is the slope coeff., and $u_i$ is the error term.
 
 
 ### 2. Estimation of model coefficients
@@ -89,7 +89,7 @@ $\rightarrow$ This represents the predicted GDP (in million CHF) of a canton whe
 
 **Slope ($\hat{\beta}_1$):** The estimated slope on `surname` is 449549.89 
 
-$\rightarrow$ This means that a one unit increase in the share of people with the surname Mueller or Maier is associated with an increase in GDP of $\approx 450$ million CHF. Note that the coefficient appears large because a "one unit increase" in `surname` would mean going from 0% to 100% of the population being named Mueller or Maier — an impossible scenario — so the number should be interpreted at realistic, much smaller increments (explained by Claude.ai).
+$\rightarrow$ This means that a one unit increase in the share of people with the surname Mueller or Maier is associated with an increase in GDP of $\approx 450$ million CHF. Note that the coefficient appears large because a "one unit increase" in `surname` would mean going from 0% to 100% of the population being named Mueller or Maier.
 
 
 ### 3. Prediction of `gdp` based on average shares of surnames
@@ -98,14 +98,58 @@ $\rightarrow$ This means that a one unit increase in the share of people with th
 avg_surname <- mean(data_joint$surname)
 avg_surname
 
-# Predict GDP at the average surname share
 predicted_gdp <- as.numeric(model_surname$coefficients[1] + model_surname$coefficients[2] * avg_surname)
 predicted_gdp
 
 # AI proposed using predict(), which gives the same result
 ```
 
-At the average cantonal surname share of 0.041%, the model predicts a GDP of approximately 28'656 million CHF.
+At the average surname share of 0.041, the model predicts a GDP of 28'656 million CHF — roughly 18'579 million CHF higher than what the model would predict for a canton with no Mueller/Maier residents $\hat{\beta}_0$ = 10'077 million CHF).
+
+## Exercise 3: Comparison of two univariate models
+
+### 1. Regression
+
+```{r}
+model_immigration <- lm(gdp ~ log(immigration), data = data_joint)
+print(model_immigration$coefficients)
+```
+
+### 2. $R^2$: Predictive power
+
+```{r}
+gdp_pred_surname <- model_surname$coefficients[1] + model_surname$coefficients[2] * data_joint$surname
+SSR_surname <- sum((data_joint$gdp - gdp_pred_surname)^2)
+SST <- sum((mean(data_joint$gdp) - data_joint$gdp)^2)
+SSE <- SST - SSR_surname # for completeness
+rsquared_surname <- 1 - SSR_surname / SST #alternatively SSE / SST
+
+gdp_pred_immigration <- model_immigration$coefficients[1] + model_immigration$coefficients[2] * log(data_joint$immigration)
+SSR_immigration <- sum((data_joint$gdp - gdp_pred_immigration)^2)
+SSE_immigration = SST - SSR_immigration # for completeness
+rsquared_immigration <- 1 - SSR_immigration / SST #atlernatively SSE_immigration / SST
+
+print(rsquared_surname)
+print(rsquared_immigration)
+```
+
+$R^2$ measures the share of total variation in cantonal GDP that is explained by the predictor. An $R^2$ of 1 means the predictor perfectly explains all variation in GDP, while an $R^2$ of 0 means it explains none.
+
+The surname model explains 64.27% of the variation in GDP, while the log immigration model explains approximately 60.52%. The predictive power of the surname model is therefore higher.
+
+### 3. Discussion on biasedness
+
+For the OLS estimator to be unbiased, the zero conditional mean assumption (SLR.4) must hold: $E[u \mid X] = 0$. This requires that the predictor is uncorrelated with the error term, i.e., that no important variables are omitted that simultaneously affect GDP and the predictor.
+
+**Surname model:** It is very unlikely that the share of people named Mueller or Maier satisfies SLR.4. Cantons with a higher surname share tend to be German-speaking cantons in central Switzerland, which also tend to differ systematically from French- and Italian-speaking cantons in terms of industrial structure, urban density, and historical development, which affect GDP independently. This is a classic case of omitted variable bias: the surname variable is picking up the effect of other canton characteristics, so $\hat{\beta}_1$ is likely biased.
+
+**Log immigration model:** Immigration is also unlikely to satisfy SLR.4 in a univariate model. Cantons with higher immigration tend to be richer, more urban cantons (e.g., Zurich, Geneva), and this relationship is partly driven by reverse causality (higher GDP attracts immigrants) and by omitted variables such as population size, industry mix, and labor market conditions. Thus $\hat{\beta}_1$ in the immigration model is also likely biased.
+
+In summary, neither coefficient can be given a causal interpretation without further controls.
+
+### 4. Relationship between unbiasedness and the predictive power of a model
+
+Unbiasedness and the predictive power measured by $R^2$ are two separate concepts that are not necessarily related. A model can fit the data very well (high $R^2$) while its coefficients are biased due to omitted variables, and an unbiased estimator can still have a low $R^2$ if the predictor only weakly explains the outcome. In short, $R^2$ tells us how well the model predicts, not whether we can trust the coefficients causally.
 
 
 
