@@ -65,7 +65,7 @@ data_joint <- data_joint |> select(canton, gdp, population, immigration, surname
 head(data_joint)
 ```
 
-There are no missing surnames and exactly 26 cantons are present in the dataset $\checkmark$.
+$\checkmark$
 
 ## 2. Estimation of an univariate model (Effect of surname on gdp)
 
@@ -89,7 +89,7 @@ $\rightarrow$ This represents the predicted GDP (in million CHF) of a canton whe
 
 **Slope ($\hat{\beta}_1$):** The estimated slope on `surname` is 449549.89 
 
-$\rightarrow$ This means that a one unit increase in the share of people with the surname Mueller or Maier is associated with an increase in GDP of $\approx 450$ million CHF. Note that the coefficient appears large because a "one unit increase" in `surname` would mean going from 0% to 100% of the population being named Mueller or Maier.
+$\rightarrow$ This means that a one unit increase in the share of people with the surname Mueller or Maier is associated with an increase in GDP of 449'549.89 million CHF. Note that the coefficient appears large because a "one unit increase" in `surname` would mean going from 0% to 100% of the population being named Mueller or Maier.
 
 
 ### 3. Prediction of `gdp` based on average shares of surnames
@@ -104,12 +104,9 @@ predicted_gdp
 # AI proposed using predict(), which gives the same result
 ```
 
-<<<<<<< HEAD
-At the average cantonal surname share of 0.041%, the model predicts a GDP of approximately 28'656 million CHF
-=======
 At the average surname share of 0.041, the model predicts a GDP of 28'656 million CHF — roughly 18'579 million CHF higher than what the model would predict for a canton with no Mueller/Maier residents $\hat{\beta}_0$ = 10'077 million CHF).
 
-## Exercise 3: Comparison of two univariate models
+## Comparison of two univariate models
 
 ### 1. Regression
 
@@ -154,12 +151,102 @@ In summary, neither coefficient can be given a causal interpretation without fur
 
 Unbiasedness and the predictive power measured by $R^2$ are two separate concepts that are not necessarily related. A model can fit the data very well (high $R^2$) while its coefficients are biased due to omitted variables, and an unbiased estimator can still have a low $R^2$ if the predictor only weakly explains the outcome. In short, $R^2$ tells us how well the model predicts, not whether we can trust the coefficients causally.
 
+## 4. Univariate model without a constant
+
+### 1. Formula
+
+$$\text{gdp}_i = \beta_1 \cdot \text{surname}_i + u_i$$
+
+### 2. Estimation of the model
+
+```{r}
+model_no_constant <- lm(gdp ~ surname - 1, data = data_joint)
+summary(model_no_constant)
+```
+The estimated coefficient on `surname` is 532247. (*From the function documentation: A formula has an implied intercept term. To remove this use either y ~ x - 1 or y ~ 0 + x.*)
+
+### 3. Explanation for the change
+
+When the intercept is removed, OLS is forced to fit the regression line through the origin (0, 0). Since the data does not actually pass through the origin, the slope coefficient absorbs part of what the intercept would have captured, causing it to change.
+
+
+## 5. Own OLS estimator
+
+### 1. Function
+
+```{r}
+my_ols <- function(y, x) {
+    # means
+    x_bar <- mean(x)
+    y_bar <- mean(y)
+    
+    # apply formula for both coefficients
+    beta_1 <- sum((y - y_bar) * (x - x_bar)) / sum((x - x_bar)^2) # Cov(y,x) / Var(x)
+
+    beta_0 <- y_bar - beta_1 * x_bar
+    
+    return(c(Intercept = beta_0, Slope = beta_1))
+}
+```
+
+### 2. Verfication against `lm()`
+
+```{r}
+my_ols(y = data_joint$gdp, x = data_joint$surname)
+
+# lm() for comparison
+coef(model_surname)
+```
+
+Both sets of coefficients match, confirming that the function is correctly implemented.
+
+### 3. `if` condition for case without a constant
+
+```{r}
+my_if_ols <- function(y, x, add_constant = TRUE) {
+  
+  if (add_constant) {
+    
+    # means
+    x_bar <- mean(x)
+    y_bar <- mean(y)
+    
+    # apply formula for both coefficients
+    beta_1 <- sum((y - y_bar) * (x - x_bar)) / sum((x - x_bar)^2) # Cov(y,x) / Var(x)
+
+    beta_0 <- y_bar - beta_1 * x_bar
+    
+    return(c(Intercept = beta_0, Slope = beta_1))
+    
+  } else {
+
+    # look at derivation below 
+    beta_1 <- sum(x * y) / sum(x^2)
+    
+    return(c(Slope = beta_1))
+  }
+}
+```
+
+Now to verify it, we compare it against the results from subexample 4:
+
+```{r}
+my_if_ols(y = data_joint$gdp, x = data_joint$surname, add_constant = FALSE)
+coef(model_no_constant)
+```
+
+Both slopes again match, confirming that the `add_constant = FALSE` branch works correctly.
 
 
 
-
-
-
-
-
-
+#### Appendix
+If there is no intercept the FOC for $\hat{\beta}_1$ becomes: 
+$$
+\begin{aligned}
+\frac{\partial}{\partial \beta_1} \sum_{i=1}^n (y_i - \beta_1 x_i)^2 &\overset{!}{=} 0 \\
+\sum_{i=1}^{n} 2(y_i - \beta_1 x_i) \cdot (-x_i) &= 0 \\
+\sum_{i=1}^{n} x_i(y_i - \beta_1 x_i) &= 0 \\
+\sum_{i=1}^{n} x_i y_i - \beta_1 \sum_{i=1}^{n} x_i^2 &= 0 \\
+\implies \hat{\beta}_1 &= \frac{\sum_{i=1}^{n} x_i y_i}{\sum_{i=1}^{n} x_i^2}
+\end{aligned}
+$$
