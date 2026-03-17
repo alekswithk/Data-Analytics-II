@@ -11,7 +11,7 @@
 
 <meta name="author" content="Aleksandar Maric, Akando Räderer" />
 
-<meta name="date" content="2026-03-13" />
+<meta name="date" content="2026-03-17" />
 
 <title>Assignment 2</title>
 
@@ -352,7 +352,7 @@ display: none;
 
 <h1 class="title toc-ignore">Assignment 2</h1>
 <h4 class="author">Aleksandar Maric, Akando Räderer</h4>
-<h4 class="date">2026-03-13</h4>
+<h4 class="date">2026-03-17</h4>
 
 </div>
 
@@ -368,8 +368,8 @@ display: none;
 <code>data_cleaned</code> is ready to go. However in
 <code>data_surnames</code> there is one row for Sri Lanka, which we will
 filter out.</p>
-<pre class="r"><code>data_cleaned &lt;- read.csv(&quot;data/ps2_cantons_cleaned.csv&quot;, sep = &quot;;&quot;)
-data_surnames &lt;- read.csv(&quot;data/ps2_cantons_surnames.csv&quot;)
+<pre class="r"><code>data_cleaned &lt;- read.csv(&quot;ps2_cantons_cleaned.csv&quot;, sep = &quot;;&quot;)
+data_surnames &lt;- read.csv(&quot;ps2_cantons_surnames.csv&quot;)
 
 data_cleaned</code></pre>
 <pre><code>##              canton    gdp population immigration
@@ -437,12 +437,12 @@ the existing variables for <code>share_mueller</code>and
 </div>
 <div id="merging-datasets" class="section level3">
 <h3>2. Merging datasets</h3>
+<pre class="r"><code>setdiff(data_cleaned$canton, data_surnames$canton)</code></pre>
+<pre><code>## [1] &quot;St. Gallen&quot;</code></pre>
 <p>Before joining, we align the canton name that differs between the two
 datasets: <code>data_cleaned</code> uses <code>&quot;St. Gallen&quot;</code> while
 <code>data_surnames</code> uses <code>&quot;Sankt Gallen&quot;</code>.</p>
-<pre class="r"><code>data_surnames &lt;- data_surnames |&gt;
-  mutate(canton = ifelse(canton == &quot;Sankt Gallen&quot;, &quot;St. Gallen&quot;, canton))
-
+<pre class="r"><code>data_surnames$canton[data_surnames$canton == &quot;Sankt Gallen&quot;] &lt;- &quot;St. Gallen&quot;
 
 data_joint &lt;- data_cleaned |&gt;
   left_join(data_surnames, by = &quot;canton&quot;)</code></pre>
@@ -496,24 +496,28 @@ own.</p>
 slope on <code>surname</code> is 449549.89</p>
 <p><span class="math inline">\(\rightarrow\)</span> This means that a
 one unit increase in the share of people with the surname Mueller or
-Maier is associated with an increase in GDP of 449’549.89 million CHF.
-Note that the coefficient appears large because a “one unit increase” in
-<code>surname</code> would mean going from 0% to 100% of the population
-being named Mueller or Maier.</p>
+Maier is associated with an estimated increase in GDP of 449’549.89
+million CHF. Note that the coefficient appears large because a “one unit
+increase” in <code>surname</code> would mean going from 0% to 100% of
+the population being named Mueller or Maier.</p>
 </div>
 <div id="prediction-of-gdp-based-on-average-shares-of-surnames" class="section level3">
 <h3>3. Prediction of <code>gdp</code> based on average shares of
 surnames</h3>
-<pre class="r"><code>avg_surname &lt;- mean(data_joint$surname)
+<pre class="r"><code># Average surname share across all cantons in the sample
+avg_surname &lt;- weighted.mean(data_joint$surname, w = data_joint$population)
 avg_surname</code></pre>
-<pre><code>## [1] 0.04132842</code></pre>
-<pre class="r"><code>predicted_gdp &lt;- as.numeric(model_surname$coefficients[1] + model_surname$coefficients[2] * avg_surname)
+<pre><code>## [1] 0.09217063</code></pre>
+<pre class="r"><code># Predict GDP at the average surname share
+predicted_gdp &lt;- as.numeric(model_surname$coefficients[1] + model_surname$coefficients[2] * avg_surname)
 predicted_gdp</code></pre>
-<pre><code>## [1] 28656.46</code></pre>
-<pre class="r"><code># AI proposed using predict(), which gives the same result</code></pre>
-<p>At the average surname share of 0.041, the model predicts a GDP of
-28’656 million CHF — roughly 18’579 million CHF higher than what the
-model would predict for a canton with no Mueller/Maier residents <span class="math inline">\(\hat{\beta}_0\)</span> = 10’077 million CHF).</p>
+<pre><code>## [1] 51512.57</code></pre>
+<pre class="r"><code># avg_surname &lt;- mean(data_joint$surname)
+# avg_surname
+
+# Due to unclear instructions about the average, we decided to use the weighted average as this reflects the effect of the relative population of each canton on GDP more accurately. The absolute difference in avg_surname is approx. 0.05%.</code></pre>
+<p>At the average cantonal surname share of 0.0922 %, the model predicts
+a GDP of approximately 51’512.57 million CHF.</p>
 </div>
 </div>
 <div id="comparison-of-two-univariate-models" class="section level2">
@@ -614,7 +618,7 @@ summary(model_no_constant)</code></pre>
 ## Residual standard error: 21420 on 25 degrees of freedom
 ## Multiple R-squared:  0.7638, Adjusted R-squared:  0.7544 
 ## F-statistic: 80.86 on 1 and 25 DF,  p-value: 2.615e-09</code></pre>
-<p>The estimated coefficient on <code>surname</code> is 532247.
+<p>The estimated coefficient on <code>surname</code> is 532’247.
 (<em>From the function documentation: A formula has an implied intercept
 term. To remove this use either y ~ x - 1 or y ~ 0 + x.</em>)</p>
 </div>

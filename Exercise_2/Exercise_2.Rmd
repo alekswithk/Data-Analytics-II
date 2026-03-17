@@ -19,8 +19,8 @@ library(ggplot2)
 At first we read-in the `.csv` files with `read.csv`. After a look at both datasets, we observe that `data_cleaned` is ready to go. However in `data_surnames` there is one row for Sri Lanka, which we will filter out.
 
 ```{r}
-data_cleaned <- read.csv("data/ps2_cantons_cleaned.csv", sep = ";")
-data_surnames <- read.csv("data/ps2_cantons_surnames.csv")
+data_cleaned <- read.csv("ps2_cantons_cleaned.csv", sep = ";")
+data_surnames <- read.csv("ps2_cantons_surnames.csv")
 
 data_cleaned
 data_surnames
@@ -38,13 +38,14 @@ data_surnames <- data_surnames |> mutate(surname=share_mueller+share_maier) |>
 
 ### 2. Merging datasets
 
+```{r}
+setdiff(data_cleaned$canton, data_surnames$canton)
+```
+
 Before joining, we align the canton name that differs between the two datasets: `data_cleaned` uses `"St. Gallen"` while `data_surnames` uses `"Sankt Gallen"`.
 
 ```{r}
-
-data_surnames <- data_surnames |>
-  mutate(canton = ifelse(canton == "Sankt Gallen", "St. Gallen", canton))
-
+data_surnames$canton[data_surnames$canton == "Sankt Gallen"] <- "St. Gallen"
 
 data_joint <- data_cleaned |>
   left_join(data_surnames, by = "canton")
@@ -89,22 +90,28 @@ $\rightarrow$ This represents the predicted GDP (in million CHF) of a canton whe
 
 **Slope ($\hat{\beta}_1$):** The estimated slope on `surname` is 449549.89 
 
-$\rightarrow$ This means that a one unit increase in the share of people with the surname Mueller or Maier is associated with an increase in GDP of 449'549.89 million CHF. Note that the coefficient appears large because a "one unit increase" in `surname` would mean going from 0% to 100% of the population being named Mueller or Maier.
+$\rightarrow$ This means that a one unit increase in the share of people with the surname Mueller or Maier is associated with an estimated increase in GDP of 449'549.89 million CHF. Note that the coefficient appears large because a "one unit increase" in `surname` would mean going from 0% to 100% of the population being named Mueller or Maier.
 
 
 ### 3. Prediction of `gdp` based on average shares of surnames
 
 ```{r}
-avg_surname <- mean(data_joint$surname)
+# Average surname share across all cantons in the sample
+avg_surname <- weighted.mean(data_joint$surname, w = data_joint$population)
 avg_surname
 
+# Predict GDP at the average surname share
 predicted_gdp <- as.numeric(model_surname$coefficients[1] + model_surname$coefficients[2] * avg_surname)
 predicted_gdp
 
-# AI proposed using predict(), which gives the same result
+# avg_surname <- mean(data_joint$surname)
+# avg_surname
+
+# Due to unclear instructions about the average, we decided to use the weighted average as this reflects the effect of the relative population of each canton on GDP more accurately. The absolute difference in avg_surname is approx. 0.05%.
 ```
 
-At the average surname share of 0.041, the model predicts a GDP of 28'656 million CHF — roughly 18'579 million CHF higher than what the model would predict for a canton with no Mueller/Maier residents $\hat{\beta}_0$ = 10'077 million CHF).
+At the average cantonal surname share of `r round(avg_surname, 4)` %, the model predicts a GDP of approximately 51'512.57 million CHF.
+
 
 ## Comparison of two univariate models
 
@@ -163,7 +170,7 @@ $$\text{gdp}_i = \beta_1 \cdot \text{surname}_i + u_i$$
 model_no_constant <- lm(gdp ~ surname - 1, data = data_joint)
 summary(model_no_constant)
 ```
-The estimated coefficient on `surname` is 532247. (*From the function documentation: A formula has an implied intercept term. To remove this use either y ~ x - 1 or y ~ 0 + x.*)
+The estimated coefficient on `surname` is 532'247. (*From the function documentation: A formula has an implied intercept term. To remove this use either y ~ x - 1 or y ~ 0 + x.*)
 
 ### 3. Explanation for the change
 
