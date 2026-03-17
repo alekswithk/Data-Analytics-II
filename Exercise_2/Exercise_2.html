@@ -515,7 +515,7 @@ predicted_gdp</code></pre>
 <pre class="r"><code># avg_surname &lt;- mean(data_joint$surname)
 # avg_surname
 
-# Due to unclear instructions about the average, we decided to use the weighted average as this reflects the effect of the relative population of each canton on GDP more accurately. The absolute difference in avg_surname is approx. 0.05%.</code></pre>
+# Due to unclear instructions about the average, we decided to use the weighted average as this reflects the effect of the relative population of each canton on GDP more accurately. The absolute difference in avg_surname `mean(data_joint$surname) - weighted.mean(data_joint$surname, w = data_joint$population)`</code></pre>
 <p>At the average cantonal surname share of 0.0922 %, the model predicts
 a GDP of approximately 51’512.57 million CHF.</p>
 </div>
