@@ -42,3 +42,48 @@ Comparing this to $$Y_{i,1} = \delta_0 + \delta_1 Q_i + u_i,$$ we obtain $$\delt
 Hence, $$\widehat{\delta_1} = \widehat{\beta_1}.$$
 
 Conclusion: adding or subtracting a constant from a regressor does not affect the OLS slope coefficient. It only changes the intercept. In this case, $$\widehat{\delta_0} = \widehat{\beta_0} + 10\widehat{\beta_1}.$$
+
+# Exercise 2
+
+## 1. Regression analysis: $medicine, travel\_time and income\_parents$
+
+### i Import, exploration and cleaning
+
+```{r}
+df <- read.csv("distances_birthtown_up.csv")
+skimr::skim(df)
+```
+After a first glance at the data set, I would suggest doing the same cleaning steps as in the exercise session (i.e. cleaning the unreported incomes and negative travel times):
+
+```{r}
+# Encode 'medicine' variable
+df <- mutate(df, medicine = ifelse(medicine == "Yes", 1, 0))
+
+
+# Set missing values for income variables
+df <- mutate(df, income = ifelse(income == -9999999, NaN, income)) %>%
+  mutate(income_parent1 = ifelse(income_parent1 == -9999999, NaN, income_parent1)) %>%
+  mutate(income_parent2 = ifelse(income_parent2 == -9999999, NaN, income_parent2))
+
+
+# Negative travel time
+df <- mutate(df, travel_time = ifelse(travel_time < 0, NaN, travel_time))                    
+
+
+# Omit missing variables 
+df_sample <- df |>
+  na.omit()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
