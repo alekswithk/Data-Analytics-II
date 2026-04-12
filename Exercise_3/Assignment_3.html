@@ -773,9 +773,68 @@ time.</p>
 <div id="vi-joint-significance-of-travel_time-and-income_parents" class="section level3">
 <h3>vi) Joint Significance of <code>travel_time</code> and
 <code>income_parents</code></h3>
-<p>The null hypothesis is <span class="math display">\[H_0:\beta_1=0,\
-\beta_2=0\]</span> against <span class="math display">\[H_A:\text{at
-least one of the two coefficients is different from 0.}\]</span></p>
+<p>To test whether they are jointly significant we test</p>
+<p><span class="math display">\[H_0:\beta_1=0,\ \beta_2=0\]</span>
+against <span class="math display">\[H_A:\text{at least one of the two
+coefficients is different from 0.}\]</span></p>
+<pre class="r"><code>fit_medicine &lt;- felm(medicine ~ travel_time + income_parents, data = df_sample)
+summary(fit_medicine)</code></pre>
+<pre><code>## 
+## Call:
+##    felm(formula = medicine ~ travel_time + income_parents, data = df_sample) 
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -0.5565 -0.4322 -0.3595  0.5537  0.7175 
+## 
+## Coefficients:
+##                  Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)     0.5121159  0.0172847  29.628   &lt;2e-16 ***
+## travel_time    -0.0497748  0.0049766 -10.002   &lt;2e-16 ***
+## income_parents  0.0002011  0.0001331   1.511    0.131    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.492 on 12803 degrees of freedom
+## Multiple R-squared(full model): 0.01135   Adjusted R-squared: 0.01119 
+## Multiple R-squared(proj model): 0.01135   Adjusted R-squared: 0.01119 
+## F-statistic(full model):73.47 on 2 and 12803 DF, p-value: &lt; 2.2e-16 
+## F-statistic(proj model): 73.47 on 2 and 12803 DF, p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>linearHypothesis(fit_medicine, c(&quot;travel_time = 0&quot;, &quot;income_parents = 0&quot;))</code></pre>
+<pre><code>## 
+## Linear hypothesis test:
+## travel_time = 0
+## income_parents = 0
+## 
+## Model 1: restricted model
+## Model 2: medicine ~ travel_time + income_parents
+## 
+##   Res.Df Df  Chisq Pr(&gt;Chisq)    
+## 1  12805                         
+## 2  12803  2 146.95  &lt; 2.2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>Or by hand from <span class="math display">\[F=\frac{(SSR_r-SSR_{ur})/q}{SSR_{ur}/(n-k-1)}\]</span></p>
+<pre class="r"><code>fit_ur &lt;- lm(medicine ~ travel_time + income_parents, data = df_sample) # unrestricted model containing both coefficients
+fit_r  &lt;- lm(medicine ~ 1, data = df_sample) # model only containing the intercept --&gt; q = 2 (restrictions)
+
+ssr_r  &lt;- sum(fit_r$residuals^2)
+ssr_ur &lt;- sum(fit_ur$residuals^2)
+
+q &lt;- 2
+k &lt;- 2
+n &lt;- nobs(fit_ur)
+
+Fstat &lt;- ((ssr_r - ssr_ur)/q) / (ssr_ur/(n-k-1))
+Fstat</code></pre>
+<pre><code>## [1] 73.47491</code></pre>
+<pre class="r"><code>qf(0.95, q, n-k-1)</code></pre>
+<pre><code>## [1] 2.996433</code></pre>
+<p>The F-statistic is larger than the critical value at the 95th
+percentile for a test at the 5% significance level.
+<em>income_parents</em> and <em>travel_time</em> are jointly
+significant. This means that the two variables together help explain the
+probability of working in medicine.</p>
 </div>
 </div>
 
