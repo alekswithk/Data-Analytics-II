@@ -21,13 +21,13 @@ library(car)
 
 # Execise 1
 
-Estimating the simple linear regressions
+**Estimating the simple linear regressions**
 
 $$Y_{i,1} = \beta_0 + \beta_1 X_i + u_i$$ and $$Y_{i,2} = \alpha_0 + \alpha_1 X_i + v_i$$.
 
 We define $Q_i = X_i - 10$.
 
-## Proof that $\widehat{\delta_1} = \widehat{\beta_1}$
+### Proof that $\widehat{\delta_1} = \widehat{\beta_1}$
 
 We estimate $$Y_{i,1} = \delta_0 + \delta_1 Q_i + u_i$$
 
@@ -114,17 +114,33 @@ summary(reg_joint)
 summary(reg_short)
 ```
 
-
-In the joint regression from part (ii), the coefficient on income_parents is much smaller than in the regression from iii) . In the joint specification, the estimate is about 0.00020 and is not statistically significant at the 5% level, while in regression iii) it is about 0.00081 and statistically significant. The coefficient on travel_time in the joint regression is negative and statistically significant, around -0.0498. Economically, this means that one additional hour of travel time is associated with about a 5 percentage point lower probability of working in medicine, holding parental income constant. A possible explanation is omitted variable bias in regression iii): travel time is left out, although it is related to career choice and may also be correlated with parental income.
+In the joint regression from part (ii), the coefficient on income_parents is much smaller than in the regression from (iii) . In the joint specification, the estimate is about 0.00020 and is not statistically significant at the 5% level, while in regression (iii) it is about 0.00081 and statistically significant. The coefficient on *travel_time* in the joint regression is negative and statistically significant, around -0.0498. Economically, this means that one additional hour of travel time is associated with about a 5 percentage point lower probability of working in medicine, holding parental income constant. A possible explanation is omitted variable bias in regression (iii): travel time is left out, although it is related to career choice and may also be correlated with parental income.
 
 
 
 ### iv) Better Explanation For The Research Question
 
-Using `region` instead of `travel_time` would likely not help to answer the research question better. The main reason is that `travel_time` is a more direct measure of how easily an individual can access Country B and its medical industry. In contrast, `region` is only a broad categorical location measure and does not capture variation in actual distance or accessibility within regions. Two individuals in the same `region` may still face very different travel times (e.g. `region` = 11). However, `region` could be useful as an additional control if regions differ systematically in other unobserved characteristics, such as school quality or local labour market opportunities. On its own, though, `region` is a less precise explanatory variable than `travel_time` for this specific question.
+Using *region* instead of *travel_time* would likely not help to answer the research question better. The main reason is that *travel_time* is a more direct measure of how easily an individual can access Country B and its medical industry. In contrast, *region* is only a broad categorical location measure and does not capture variation in actual distance or accessibility within regions. Two individuals in the same *region* may still face very different travel times (e.g. *region* = 11). This makes *travel_time* a more precise explanatory variable.
 
+However, *travel_time* may not fully capture all real-world barriers to access, such as institutional or administrative constraints. Therefore, *region* could still capture broader local characteristics and may be useful as an additional control, but on its own it is less precise than *travel_time* for this research question.
 
-### v) Correlation of `income_parents` with `travel_time`
+### v) Correlation of *income_parents* with *travel_time*
+
+**Hypotheses**
+
+We estimate the following regression:
+
+$income\_parents_i = \gamma_0 + \gamma_1 travel\_time_i + u_i$
+
+To test whether *income_parents* is correlated with *travel_time*, we consider the following hypotheses:
+
+$H_0: \gamma_1 = 0$
+
+$H_1: \gamma_1 \neq 0$
+
+The null hypothesis states that parental income is not correlated with travel time, while the alternative states that there is a correlation.
+
+$t=\frac{\hat{\gamma}_1}{se(\hat{\gamma}_1)}$.
 
 ```{r}
 df_test <- df_sample
@@ -134,16 +150,14 @@ summary(fit_corr)
 
 cor.test(df_test$income_parents, df_test$travel_time)
 ```
-We test whether `income_parents` is correlated with `travel_time` by estimating the simple regression
-$income\_parents_i = \gamma_0 + \gamma_1 travel\_time_i + u_i$.
-The null hypothesis is $H_0:\gamma_1=0$, against the alternative $H_A:\gamma_1\neq 0$. The t-statistic is
-$t=\frac{\hat{\gamma}_1}{se(\hat{\gamma}_1)}$.
 
-The estimated coefficient on `travel_time` is about -17.11, with a standard error of 0.2937, giving a t-statistic of -58.27 and a p-value below 0.01. Hence, we reject $H_0$ at the 5% level. *We could also compare it to the critical value $t_{crit} = -1.96$ from `qt(0.025, 12804)` and see immediately that we're far away from it.*
+The estimated coefficient on *travel_time* is about -17.11, with a standard error of 0.2937, giving a t-statistic of -58.27 and a p-value below 0.01. Hence, we reject $H_0$ at the 5% level. *We could also compare it to the critical value $t_{crit} = -1.96$ from `qt(0.025, 12804)` and see immediately that we're far away from it.*
 
-There is strong statistical evidence that `income_parents` and `travel_time` are correlated, and the relationship is negative. Individuals with higher parental income tend to live closer to Country B. Omitting `travel_time` leads to omitted variable bias in part iii). The estimated effect of parental income alone captures both its direct effect and part of the effect of travel time.
+**Conclusion**
 
-### vi) Joint Significance of `travel_time` and `income_parents`
+There is strong statistical evidence that *income_parents* and *travel_time* are correlated, and the relationship is negative. Individuals with higher parental income tend to live closer to Country B. Omitting *travel_time* leads to omitted variable bias in part (iii). The estimated effect of parental income alone captures both its direct effect and part of the effect of travel time.
+
+### vi) Joint Significance of *travel_time* and *income_parents*
 
 To test whether they are jointly significant we test 
  
@@ -174,11 +188,3 @@ qf(0.95, q, n-k-1)
 ```
 
 The F-statistic is larger than the critical value at the 95th percentile for a test at the 5% significance level. *income_parents* and *travel_time* are jointly significant. This means that the two variables together help explain the probability of working in medicine.
-
-
-
-
-
-
-
-

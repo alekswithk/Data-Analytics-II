@@ -11,7 +11,7 @@
 
 <meta name="author" content="Aleksandar Maric, Akando Räderer" />
 
-<meta name="date" content="2026-04-12" />
+<meta name="date" content="2026-04-13" />
 
 <title>Assignment 3</title>
 
@@ -352,21 +352,21 @@ display: none;
 
 <h1 class="title toc-ignore">Assignment 3</h1>
 <h4 class="author">Aleksandar Maric, Akando Räderer</h4>
-<h4 class="date">2026-04-12</h4>
+<h4 class="date">2026-04-13</h4>
 
 </div>
 
 
 <div id="execise-1" class="section level1">
 <h1>Execise 1</h1>
-<p>Estimating the simple linear regressions</p>
+<p><strong>Estimating the simple linear regressions</strong></p>
 <p><span class="math display">\[Y_{i,1} = \beta_0 + \beta_1 X_i +
 u_i\]</span> and <span class="math display">\[Y_{i,2} = \alpha_0 +
 \alpha_1 X_i + v_i\]</span>.</p>
 <p>We define <span class="math inline">\(Q_i = X_i - 10\)</span>.</p>
-<div id="proof-that-widehatdelta_1-widehatbeta_1" class="section level2">
-<h2>Proof that <span class="math inline">\(\widehat{\delta_1} =
-\widehat{\beta_1}\)</span></h2>
+<div id="proof-that-widehatdelta_1-widehatbeta_1" class="section level3">
+<h3>Proof that <span class="math inline">\(\widehat{\delta_1} =
+\widehat{\beta_1}\)</span></h3>
 <p>We estimate <span class="math display">\[Y_{i,1} = \delta_0 +
 \delta_1 Q_i + u_i\]</span></p>
 <p>We have <span class="math display">\[Q_i = X_i - 10 \quad \Rightarrow
@@ -684,37 +684,51 @@ summary(reg_joint)</code></pre>
 ## Multiple R-squared:  0.003623,   Adjusted R-squared:  0.003545 
 ## F-statistic: 46.55 on 1 and 12804 DF,  p-value: 9.317e-12</code></pre>
 <p>In the joint regression from part (ii), the coefficient on
-income_parents is much smaller than in the regression from iii) . In the
-joint specification, the estimate is about 0.00020 and is not
-statistically significant at the 5% level, while in regression iii) it
+income_parents is much smaller than in the regression from (iii) . In
+the joint specification, the estimate is about 0.00020 and is not
+statistically significant at the 5% level, while in regression (iii) it
 is about 0.00081 and statistically significant. The coefficient on
-travel_time in the joint regression is negative and statistically
-significant, around -0.0498. Economically, this means that one
-additional hour of travel time is associated with about a 5 percentage
-point lower probability of working in medicine, holding parental income
-constant. A possible explanation is omitted variable bias in regression
-iii): travel time is left out, although it is related to career choice
-and may also be correlated with parental income.</p>
+<em>travel_time</em> in the joint regression is negative and
+statistically significant, around -0.0498. Economically, this means that
+one additional hour of travel time is associated with about a 5
+percentage point lower probability of working in medicine, holding
+parental income constant. A possible explanation is omitted variable
+bias in regression (iii): travel time is left out, although it is
+related to career choice and may also be correlated with parental
+income.</p>
 <div id="iv-better-explanation-for-the-research-question" class="section level3">
 <h3>iv) Better Explanation For The Research Question</h3>
-<p>Using <code>region</code> instead of <code>travel_time</code> would
-likely not help to answer the research question better. The main reason
-is that <code>travel_time</code> is a more direct measure of how easily
-an individual can access Country B and its medical industry. In
-contrast, <code>region</code> is only a broad categorical location
-measure and does not capture variation in actual distance or
-accessibility within regions. Two individuals in the same
-<code>region</code> may still face very different travel times
-(e.g. <code>region</code> = 11). However, <code>region</code> could be
-useful as an additional control if regions differ systematically in
-other unobserved characteristics, such as school quality or local labour
-market opportunities. On its own, though, <code>region</code> is a less
-precise explanatory variable than <code>travel_time</code> for this
-specific question.</p>
+<p>Using <em>region</em> instead of <em>travel_time</em> would likely
+not help to answer the research question better. The main reason is that
+<em>travel_time</em> is a more direct measure of how easily an
+individual can access Country B and its medical industry. In contrast,
+<em>region</em> is only a broad categorical location measure and does
+not capture variation in actual distance or accessibility within
+regions. Two individuals in the same <em>region</em> may still face very
+different travel times (e.g. <em>region</em> = 11). This makes
+<em>travel_time</em> a more precise explanatory variable.</p>
+<p>However, <em>travel_time</em> may not fully capture all real-world
+barriers to access, such as institutional or administrative constraints.
+Therefore, <em>region</em> could still capture broader local
+characteristics and may be useful as an additional control, but on its
+own it is less precise than <em>travel_time</em> for this research
+question.</p>
 </div>
 <div id="v-correlation-of-income_parents-with-travel_time" class="section level3">
-<h3>v) Correlation of <code>income_parents</code> with
-<code>travel_time</code></h3>
+<h3>v) Correlation of <em>income_parents</em> with
+<em>travel_time</em></h3>
+<p><strong>Hypotheses</strong></p>
+<p>We estimate the following regression:</p>
+<p><span class="math inline">\(income\_parents_i = \gamma_0 + \gamma_1
+travel\_time_i + u_i\)</span></p>
+<p>To test whether <em>income_parents</em> is correlated with
+<em>travel_time</em>, we consider the following hypotheses:</p>
+<p><span class="math inline">\(H_0: \gamma_1 = 0\)</span></p>
+<p><span class="math inline">\(H_1: \gamma_1 \neq 0\)</span></p>
+<p>The null hypothesis states that parental income is not correlated
+with travel time, while the alternative states that there is a
+correlation.</p>
+<p><span class="math inline">\(t=\frac{\hat{\gamma}_1}{se(\hat{\gamma}_1)}\)</span>.</p>
 <pre class="r"><code>df_test &lt;- df_sample
 
 fit_corr &lt;- felm(income_parents ~ travel_time, data = df_test)
@@ -751,28 +765,23 @@ summary(fit_corr)</code></pre>
 ## sample estimates:
 ##        cor 
 ## -0.4578041</code></pre>
-<p>We test whether <code>income_parents</code> is correlated with
-<code>travel_time</code> by estimating the simple regression <span class="math inline">\(income\_parents_i = \gamma_0 + \gamma_1
-travel\_time_i + u_i\)</span>. The null hypothesis is <span class="math inline">\(H_0:\gamma_1=0\)</span>, against the alternative
-<span class="math inline">\(H_A:\gamma_1\neq 0\)</span>. The t-statistic
-is <span class="math inline">\(t=\frac{\hat{\gamma}_1}{se(\hat{\gamma}_1)}\)</span>.</p>
-<p>The estimated coefficient on <code>travel_time</code> is about
--17.11, with a standard error of 0.2937, giving a t-statistic of -58.27
-and a p-value below 0.01. Hence, we reject <span class="math inline">\(H_0\)</span> at the 5% level. <em>We could also
+<p>The estimated coefficient on <em>travel_time</em> is about -17.11,
+with a standard error of 0.2937, giving a t-statistic of -58.27 and a
+p-value below 0.01. Hence, we reject <span class="math inline">\(H_0\)</span> at the 5% level. <em>We could also
 compare it to the critical value <span class="math inline">\(t_{crit} =
 -1.96\)</span> from <code>qt(0.025, 12804)</code> and see immediately
 that we’re far away from it.</em></p>
-<p>There is strong statistical evidence that <code>income_parents</code>
-and <code>travel_time</code> are correlated, and the relationship is
-negative. Individuals with higher parental income tend to live closer to
-Country B. Omitting <code>travel_time</code> leads to omitted variable
-bias in part iii). The estimated effect of parental income alone
-captures both its direct effect and part of the effect of travel
-time.</p>
+<p><strong>Conclusion</strong></p>
+<p>There is strong statistical evidence that <em>income_parents</em> and
+<em>travel_time</em> are correlated, and the relationship is negative.
+Individuals with higher parental income tend to live closer to Country
+B. Omitting <em>travel_time</em> leads to omitted variable bias in part
+(iii). The estimated effect of parental income alone captures both its
+direct effect and part of the effect of travel time.</p>
 </div>
 <div id="vi-joint-significance-of-travel_time-and-income_parents" class="section level3">
-<h3>vi) Joint Significance of <code>travel_time</code> and
-<code>income_parents</code></h3>
+<h3>vi) Joint Significance of <em>travel_time</em> and
+<em>income_parents</em></h3>
 <p>To test whether they are jointly significant we test</p>
 <p><span class="math display">\[H_0:\beta_1=0,\ \beta_2=0\]</span>
 against <span class="math display">\[H_A:\text{at least one of the two
