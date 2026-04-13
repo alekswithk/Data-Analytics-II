@@ -1,0 +1,177 @@
+---
+title: "Assignment 3"
+author: "Aleksandar Maric, Akando Räderer"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+rm(list=ls())
+
+library(dplyr)
+library(ggplot2)
+library(skimr)
+library(lfe)
+library(ivreg)
+library(car)
+```
+
+# Exercise 1
+
+## Estimating the simple linear regressions
+
+$$Y_{i,1}=\beta_0+\beta_1X_i+u_i$$and$$Y_{i,2}=\alpha_0+\alpha_1X_i+v_i$$.
+We define $Q_i=X_i-10$.Proof that $\widehat{\delta_1}=\widehat{\beta_1}$
+We estimate$$Y_{i,1}=\delta_0+\delta_1Q_i+u_i$$
+We have$$Q_i=X_i-10\quad\Rightarrow\quad X_i=Q_i+10.$$
+Substituting into the original regression gives$$Y_{i,1}=\beta_0+\beta_1X_i+u_i=\beta_0+\beta_1(Q_i+10)+u_i.$$
+Rearranging:$$Y_{i,1}=(\beta_0+10\beta_1)+\beta_1Q_i+u_i.$$
+Comparing this to$$Y_{i,1}=\delta_0+\delta_1Q_i+u_i,$$
+we obtain$$\delta_0=\beta_0+10\beta_1\quad\text{and}\quad\delta_1=\beta_1.$$
+Hence,$$\widehat{\delta_1}=\widehat{\beta_1}.$$
+Conclusion: adding or subtracting a constant from a regressor does not affect the OLS slope coefficient. It only changes the intercept. In this case, the relationship changes as follows:$$\widehat{\delta_0}=\widehat{\beta_0}+10\widehat{\beta_1}.$$
+
+
+# Exercise 2
+
+## 1. Regression analysis: 
+
+$medicine, travel\_time \quad\text{and}\quad income\_parents$
+
+### (i) Import, exploration and cleaning
+
+```{r}
+df <- read.csv("distances_birthtown_up.csv")
+skimr::skim(df)
+```
+
+After a first glance at the data set, we suggest doing the same cleaning steps as in the exercise session (i.e. cleaning the unreported incomes and negative travel times):
+
+```{r}
+# Encode 'medicine' variable
+df <- mutate(df, medicine = ifelse(medicine == "Yes", 1, 0))
+
+# Set missing values for income variables
+df <- mutate(df, income = ifelse(income == -9999999, NaN, income)) |>
+  mutate(income_parent1 = ifelse(income_parent1 == -9999999, NaN, income_parent1)) |>
+  mutate(income_parent2 = ifelse(income_parent2 == -9999999, NaN, income_parent2))
+
+# Negative travel time
+df <- mutate(df, travel_time = ifelse(travel_time < 0, NaN, travel_time))                    
+
+# Omit missing variables 
+df_sample <- df |>
+  na.omit()
+```
+
+Now we generate the variable $income\_parents=income\_p1+income\_p2$:
+
+```{r}
+df_sample <- df_sample |> mutate(income_parents = income_parent1 + income_parent2)
+```
+
+### (ii) Regression Equation
+
+To investigate the relationship of medicine with travel time and income parents we write the regression equation as follows:$$medicine_i=\beta_0+\beta_1travel\_time_i+\beta_2income\_parents_i+\epsilon_i$$
+
+- $\beta_0$ is the predicted probability of working in medicine when travel time and parental income are both zero.
+
+- $\beta_1$ measures the change in the probability of working in medicine associated with a one-unit increase in travel time, holding parental income constant.
+
+- $\beta_2$ measures the change in the probability of working in medicine associated with a one-unit increase in parental income, holding travel time constant.
+
+$medicine_i$ is an indicator equal to 1 if individual $i$ works in medicine and 0 otherwise. $travel\_time_i$ measures travel time to Country B, and $income\_parents_i$ is the sum of both parents' incomes.
+
+### (iii) Estimation of Regression
+
+We'll compare
+$$medicine_i=\beta_0+\beta_1travel\_time_i+\beta_2income\_parents_i+\epsilon_i$$
+to
+$$medicine_i=\delta_0+\delta_1income\_parents_i+v_i$$
+
+```{r}
+reg_joint <- lm(medicine ~ travel_time + income_parents, data = df_sample)
+reg_short <- lm(medicine ~ income_parents, data = df_sample)
+
+summary(reg_joint)
+summary(reg_short)
+```
+In the joint regression from part (ii), the coefficient on income_parents is much smaller than in the regression from (iii). In the joint specification, the estimate is about 0.00020 and is not statistically significant at the 5% level, while in regression (iii) it is about 0.00081 and statistically significant. The coefficient on travel_time in the joint regression is negative and statistically significant, around -0.0498. Economically, this means that one additional hour of travel time is associated with about a 5 percentage point lower probability of working in medicine, holding parental income constant. A possible explanation is omitted variable bias in regression (iii): travel time is left out, although it is related to career choice and may also be correlated with parental income.
+
+### (iv) Variable: regions vs. travel time
+
+Using region instead of travel_time would likely not help to answer the research question better. The main reason is that travel_time is a more direct, continuous measure of how easily an individual can access Country B and its medical industry. In contrast, region is only a broad categorical location measure and does not capture variation in actual distance or accessibility within regions; two individuals in the same region may still face very different travel times.
+
+However, region could be useful as an additional control if regions differ systematically in other unobserved characteristics, such as institutional constraints, school quality, or local labour market opportunities. On its own, though, region is a less precise explanatory variable than travel_time for this specific question.
+
+### (v) Correlation of income_parents with travel_time
+
+**Hypotheses**
+
+We test whether `income_parents` is correlated with `travel_time` by estimating the simple regression:
+$$income\_parents_i=\gamma_0+\gamma_1travel\_time_i+u_i$$
+
+We consider the following hypotheses:
+
+$H_0:\gamma_1=0$
+
+$H_A:\gamma_1\neq 0$
+
+The null hypothesis states that parental income is not correlated with travel time, while the alternative states that there is a correlation.
+
+```{r}
+df_test <- df_sample
+
+fit_corr <- felm(income_parents ~ travel_time, data = df_test)
+summary(fit_corr)
+
+cor.test(df_test$income_parents, df_test$travel_time)
+```
+
+The t-statistic is given by:$$t=\frac{\hat{\gamma}_1}{se(\hat{\gamma}_1)}$$
+The estimated coefficient on travel_time is about -17.11, with a standard error of 0.2937, giving a t-statistic of -58.27 and a p-value below 0.01. Hence, we reject $H_0$ at the 5% level. We could also compare it to the critical value $t_{crit}=-1.96$ from qt(0.025, 12804) and see immediately that we're far away from it.
+
+**Conclusion**
+
+There is strong statistical evidence that income_parents and travel_time are correlated, and the relationship is negative. Individuals with higher parental income tend to live closer to Country B. Omitting travel_time leads to omitted variable bias in part (iii). The estimated effect of parental income alone captures both its direct effect and part of the effect of travel time.
+
+### (vi) Joint Significance of travel_time and income_parents
+
+To test whether they are jointly significant we test
+
+$$H_0:\beta_1=0,\ \beta_2=0$$
+
+against
+
+$$H_A:\text{at least one of the two coefficients is different from 0.}$$
+
+```{r}
+fit_medicine <- felm(medicine ~ travel_time + income_parents, data = df_sample)
+summary(fit_medicine)
+
+linearHypothesis(fit_medicine, c("travel_time = 0", "income_parents = 0"))
+```
+Or by hand from
+
+$$F=\frac{(SSR_r-SSR_{ur})/q}{SSR_{ur}/(n-k-1)}$$
+
+```{r}
+fit_ur <- lm(medicine ~ travel_time + income_parents, data = df_sample) # unrestricted model containing both coefficients
+fit_r  <- lm(medicine ~ 1, data = df_sample) # model only containing the intercept --> q = 2 (restrictions)
+
+ssr_r  <- sum(fit_r$residuals^2)
+ssr_ur <- sum(fit_ur$residuals^2)
+
+q <- 2
+k <- 2
+n <- nobs(fit_ur)
+
+Fstat <- ((ssr_r - ssr_ur)/q) / (ssr_ur/(n-k-1))
+Fstat
+qf(0.95, q, n-k-1)
+```
+
+The F-statistic is larger than the critical value at the 95th percentile for a test at the 5% significance level. `income_parents` and `travel_time` are jointly significant. This means that the two variables together help explain the probability of working in medicine.
+
