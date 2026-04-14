@@ -96,7 +96,7 @@ $$medicine_i = \beta_0 + \beta_1 travel\_time_i + \beta_2 income\_parents_i + \e
 
 $medicine_i$ is an indicator equal to 1 if individual $i$ works in medicine and 0 otherwise. $travel\_time_i$ measures travel time to Country B, and $income\_parents_i$ is the sum of both parents' incomes.
 
-# iii) Estimation of Regression
+### iii) Estimation of Regression
 
 We'll compare 
 
@@ -114,7 +114,7 @@ summary(reg_joint)
 summary(reg_short)
 ```
 
-In the joint regression from part (ii), the coefficient on income_parents is much smaller than in the regression from (iii) . In the joint specification, the estimate is about 0.00020 and is not statistically significant at the 5% level, while in regression (iii) it is about 0.00081 and statistically significant. The coefficient on *travel_time* in the joint regression is negative and statistically significant, around -0.0498. Economically, this means that one additional hour of travel time is associated with about a 5 percentage point lower probability of working in medicine, holding parental income constant. A possible explanation is omitted variable bias in regression (iii): travel time is left out, although it is related to career choice and may also be correlated with parental income.
+In the joint regression from part (ii), the coefficient on income_parents is much smaller than in the regression from (iii). In the joint specification, the estimate is about 0.00020 and is not statistically significant at the 5% level, while in regression (iii) it is about 0.00081 and statistically significant. The coefficient on *travel_time* in the joint regression is negative and statistically significant, around -0.0498. Economically, this means that one additional hour of travel time is associated with about a 5 percentage point lower probability of working in medicine, holding parental income constant. A possible explanation is omitted variable bias in regression (iii): travel time is left out, although it is related to career choice and may also be correlated with parental income.
 
 
 
@@ -130,17 +130,17 @@ However, *travel_time* may not fully capture all real-world barriers to access, 
 
 We estimate the following regression:
 
-$income\_parents_i = \gamma_0 + \gamma_1 travel\_time_i + u_i$
+$$income\_parents_i = \gamma_0 + \gamma_1 travel\_time_i + u_i$$
 
 To test whether *income_parents* is correlated with *travel_time*, we consider the following hypotheses:
 
-$H_0: \gamma_1 = 0$
+$$H_0: \gamma_1 = 0$$
 
-$H_1: \gamma_1 \neq 0$
+$$H_1: \gamma_1 \neq 0$$
 
 The null hypothesis states that parental income is not correlated with travel time, while the alternative states that there is a correlation.
 
-$t=\frac{\hat{\gamma}_1}{se(\hat{\gamma}_1)}$.
+$$t=\frac{\hat{\gamma}_1}{se(\hat{\gamma}_1)}$$
 
 ```{r}
 df_test <- df_sample

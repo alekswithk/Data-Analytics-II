@@ -11,7 +11,7 @@
 
 <meta name="author" content="Aleksandar Maric, Akando Räderer" />
 
-<meta name="date" content="2026-04-13" />
+<meta name="date" content="2026-04-14" />
 
 <title>Assignment 3</title>
 
@@ -352,7 +352,7 @@ display: none;
 
 <h1 class="title toc-ignore">Assignment 3</h1>
 <h4 class="author">Aleksandar Maric, Akando Räderer</h4>
-<h4 class="date">2026-04-13</h4>
+<h4 class="date">2026-04-14</h4>
 
 </div>
 
@@ -631,10 +631,8 @@ medicine and 0 otherwise. <span class="math inline">\(travel\_time_i\)</span> me
 Country B, and <span class="math inline">\(income\_parents_i\)</span> is
 the sum of both parents’ incomes.</p>
 </div>
-</div>
-</div>
-<div id="iii-estimation-of-regression" class="section level1">
-<h1>iii) Estimation of Regression</h1>
+<div id="iii-estimation-of-regression" class="section level3">
+<h3>iii) Estimation of Regression</h3>
 <p>We’ll compare</p>
 <p><span class="math display">\[medicine_i = \beta_0 + \beta_1
 travel\_time_i + \beta_2 income\_parents_i + \epsilon_i\]</span></p>
@@ -684,8 +682,8 @@ summary(reg_joint)</code></pre>
 ## Multiple R-squared:  0.003623,   Adjusted R-squared:  0.003545 
 ## F-statistic: 46.55 on 1 and 12804 DF,  p-value: 9.317e-12</code></pre>
 <p>In the joint regression from part (ii), the coefficient on
-income_parents is much smaller than in the regression from (iii) . In
-the joint specification, the estimate is about 0.00020 and is not
+income_parents is much smaller than in the regression from (iii). In the
+joint specification, the estimate is about 0.00020 and is not
 statistically significant at the 5% level, while in regression (iii) it
 is about 0.00081 and statistically significant. The coefficient on
 <em>travel_time</em> in the joint regression is negative and
@@ -696,6 +694,7 @@ parental income constant. A possible explanation is omitted variable
 bias in regression (iii): travel time is left out, although it is
 related to career choice and may also be correlated with parental
 income.</p>
+</div>
 <div id="iv-better-explanation-for-the-research-question" class="section level3">
 <h3>iv) Better Explanation For The Research Question</h3>
 <p>Using <em>region</em> instead of <em>travel_time</em> would likely
@@ -719,16 +718,16 @@ question.</p>
 <em>travel_time</em></h3>
 <p><strong>Hypotheses</strong></p>
 <p>We estimate the following regression:</p>
-<p><span class="math inline">\(income\_parents_i = \gamma_0 + \gamma_1
-travel\_time_i + u_i\)</span></p>
+<p><span class="math display">\[income\_parents_i = \gamma_0 + \gamma_1
+travel\_time_i + u_i\]</span></p>
 <p>To test whether <em>income_parents</em> is correlated with
 <em>travel_time</em>, we consider the following hypotheses:</p>
-<p><span class="math inline">\(H_0: \gamma_1 = 0\)</span></p>
-<p><span class="math inline">\(H_1: \gamma_1 \neq 0\)</span></p>
+<p><span class="math display">\[H_0: \gamma_1 = 0\]</span></p>
+<p><span class="math display">\[H_1: \gamma_1 \neq 0\]</span></p>
 <p>The null hypothesis states that parental income is not correlated
 with travel time, while the alternative states that there is a
 correlation.</p>
-<p><span class="math inline">\(t=\frac{\hat{\gamma}_1}{se(\hat{\gamma}_1)}\)</span>.</p>
+<p><span class="math display">\[t=\frac{\hat{\gamma}_1}{se(\hat{\gamma}_1)}\]</span></p>
 <pre class="r"><code>df_test &lt;- df_sample
 
 fit_corr &lt;- felm(income_parents ~ travel_time, data = df_test)
@@ -844,6 +843,7 @@ percentile for a test at the 5% significance level.
 <em>income_parents</em> and <em>travel_time</em> are jointly
 significant. This means that the two variables together help explain the
 probability of working in medicine.</p>
+</div>
 </div>
 </div>
 
