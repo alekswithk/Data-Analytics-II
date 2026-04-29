@@ -1,0 +1,149 @@
+---
+title: "Assignment 4"
+author: "Aleksandar Maric, Akando Räderer"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+latex-engine: pdflatex
+---
+
+# Assignment 4
+
+We're using the estimated model: 
+
+$$\log (inc_i) = \beta_0 + \beta_1 \cdot fsize_i + \beta_2 \cdot \log(tw_i) + \beta_3 \cdot age_i + \beta_4 \cdot age_i^2 + \beta_5 \cdot educ_i + \beta_6 \cdot marr_i + u_i, \quad i \in \{1, \ldots, N\}. $$
+
+## Exercise 1 Coefficient interpretation
+
+### a) Interpretation of $\hat \beta_1 \space \text{(fsize)}$, $\hat \beta_2 \space \text{(log(tw))}$, and $\hat \beta_6 \space \text{(marr)}$
+
+- $\hat \beta_1 \space \text{(fsize)}$ (Log-level): Ceteris paribus, one additional household member is associated with a change in household income of $(e^{\hat \beta_1} - 1) \times 100 = (e^{-0.0412} - 1) \times 100 \approx -4.04\%$. The economically correct interpretation formula is iii. $(e^{\hat \beta_j} - 1) \times 100$, because the dependent variable is in logs and $\text{fsize}$ is in levels; the approximation ii. $\hat \beta_j \times 100 = -4.12\%$ is very close.
+
+- $\hat \beta_2 \space \text{(log(tw))}$ (Log-log): Ceteris paribus, a $1\%$ increase in total household wealth is associated with an increase in household income of approximately $0.2873\%$. The economically correct interpretation formula is i. $\hat \beta_j$, because both the dependent variable and the independent variable are in logs, so the coefficient is an elasticity.
+
+- $\hat \beta_6 \space \text{(marr)}$ (Log-level dummy): Ceteris paribus, if the main earner is married, household income is associated with an exact difference of $(e^{\hat \beta_6} - 1) \times 100 = (e^{0.4217} - 1) \times 100 \approx 52.46\%$ relative to an unmarried main earner. The economically correct interpretation formula is iii. $(e^{\hat \beta_j} - 1) \times 100$, because $\text{marr}$ is a dummy variable in a log-level model; the approximation ii. $\hat \beta_j \times 100 = 42.17\%$ differs meaningfully, so the exact value should be reported.
+
+### b) $age$ and $age^2$; marginal effects
+
+1. The marginal effect of age on $\log (inc_i)$ is 
+
+$$\frac{\partial \log (inc_i)}{\partial age_i} = \hat \beta_3 + 2 \cdot \hat \beta_4 age_i.$$
+
+At $age = 25$ this equals
+
+$$0.0512 + 2 \cdot (-0.0006) \cdot 25 = 0.0212.$$
+
+Therefore, ceteris paribus, one additional year of age at age 25 is associated with approximately $2.12\%$ higher household income.
+
+2. Solving for the turning point $age^\ast$:
+
+$$0 = 0.0512 + 2 \cdot (-0.0006) \cdot age^\ast$$
+
+$$age^\ast = \frac{-0.0512}{2 \cdot (-0.0006)} = 42.67.$$
+
+Therefore, the fitted age-income profile increases until approximately age 42.7 and decreases afterwards, holding all other regressors constant.
+
+## Exercise 2 Model specification
+
+$$\mathbb E \big[ \check \beta_j \big] = \beta_j + \underbrace{\beta_{tw} \cdot \delta_j}_{\text{bias}}, \quad \delta_j \approx \frac{\operatorname{Cov}(x_j, twoearn)}{\operatorname{Var}(x_j)}.$$
+
+The direction of the bias on:
+
+- $\check \beta_1 \space \text{(fsize)}$: 
+
+  1. $\beta_{tw} > 0$ because a second employed person in the household should increase household income.
+  
+  2. $\delta_1 > 0$ because larger households are more likely to include two employed persons.
+  
+  3. Since $\beta_{tw} \cdot \delta_1 > 0$, $\mathbb E \big [ \check \beta_1 \big] > \beta_1$, so the coefficient on $\text{fsize}$ is biased upward.
+  
+- $\check \beta_6 \space \text{(marr)}$:
+
+   1. $\beta_{tw} > 0$ because a second employed household member should raise household income.
+   
+   2. $\delta_6 > 0$ because married main earners are more likely to live in a household with a second employed person.
+   
+   3. Since $\beta_{tw} \cdot \delta_6 > 0$, $\mathbb E \big [ \check \beta_6 \big] > \beta_6$, so the coefficient on $\text{marr}$ is biased upward.
+    
+## Exercise 3 Residual patterns and inference
+
+### a) Gauss-Markov assumption
+
+This pattern calls into question **MLR.5: Homoskedasticity**, because the variance of the error term appears to depend on education:
+
+$$\operatorname{Var}(u_i \mid fsize_i, \log(tw_i), age_i, age_i^2, educ_i, marr_i) = \sigma^2,$$
+
+and the residual plot suggests that
+
+$$\operatorname{Var}(u_i \mid educ_i)$$
+
+may be larger for households with higher education.
+
+### b) Unbiasedness and BLUE
+
+1. OLS is still unbiased if MLR.1-MLR.4 hold, because homoskedasticity is not required for unbiasedness.
+
+2. OLS is no longer BLUE, because under heteroskedasticity OLS is no longer necessarily the estimator with the smallest variance among linear unbiased estimators.
+
+### c) Sticking to homoskedasticity-based formula
+
+If homoskedasticity-based standard errors are used, they can be wrong because they impose constant error variance. Therefore, the usual $t$-tests, $F$-tests, confidence intervals, and $p$-values may be unreliable. We should therefore use heteroskedasticity-robust standard errors for inference.
+
+## Exercise 4 Inference for household size
+
+1. Hypotheses:
+
+$$H_0: \beta_1 \geq 0 \qquad \text{vs} \qquad H_1: \beta_1 < 0, \quad \alpha = 1\%.$$
+
+2. Test statistic:
+
+$$t = \frac{\hat \beta_1 - 0}{se(\hat \beta_1)}.$$
+
+3. Observed t-value: As $\hat \beta_1 = -0.0412$ and $se(\hat \beta_1) = 0.0201$, 
+
+$$t = \frac{-0.0412}{0.0201} = -2.0498.$$
+
+4. Reference distribution under $H_0$: Under the null hypothesis, the test statistic follows a $t$-distribution with
+
+$$df = N - k - 1 = 534 - 6 - 1 = 527$$
+
+degrees of freedom:
+
+$$T \sim t_{527}.$$
+
+Here, $k = 6$ is the number of regressors excluding the intercept.
+
+5. Critical value at $\alpha = 1\%$:
+
+Because this is a left-sided test, the critical value is the 1% quantile of the $t_{527}$ distribution (from `qt(0.01, df = 527)`):
+
+$$c = t_{0.01, 527} \approx -2.334.$$
+
+6. $p$-value (from `pt(-2.0498, df = 527)`):
+
+$$p = P(T_{527} \leq -2.0498) \approx 0.0204.$$
+
+7. Decision: Since $-2.0498 > -2.334$ and $0.0204 > 0.01$, we do not reject $H_0$ at the 1% significance level. There is not enough statistical evidence at the 1% level to conclude that household size has a negative effect on household income.
+
+## Exercise 5 Testing age effects
+
+1. Separate t-tests for $age$ and $age^2$ are not the correct way to test whether age has any effect jointly, because the effect of age is represented by both coefficients together. Even if one coefficient were individually insignificant, the two variables could still be jointly significant.
+
+2. The correct test is an $F$-test for joint significance:
+
+$$H_0: \beta_3 = 0 \text{ and } \beta_4 = 0$$
+
+against
+
+$$H_1: \text{at least one of } \beta_3, \beta_4 \text{ is different from zero}.$$
+
+3. The test statistic is
+
+$$F = \frac{(SSR_r - SSR_{ur}) / q}{SSR_{ur} / (N - k - 1)}.$$
+
+Here, $SSR_r$ is the sum of squared residuals from the restricted model, $SSR_{ur}$ is the sum of squared residuals from the unrestricted model, $q = 2$ is the number of restrictions, $N = 534$ is the sample size, and $k = 6$ is the number of regressors in the unrestricted model excluding the intercept.
+
+Under $H_0$, the reference distribution is
+
+$$F \sim F_{q, N-k-1} = F_{2, 527}.$$
