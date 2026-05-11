@@ -531,7 +531,7 @@ df_clean &lt;- df |&gt;
     college = ifelse(college == -1, NA, college),
     income = ifelse(income == -9999999, NA, income),
     hhincome = ifelse(hhincome == -9999999, NA, hhincome),
-    white = race, # for Question 3
+   white = ifelse(race == 1, 1, 0), # white == 1, non-white otherwise, for Q3
     low_income = ifelse(
       is.na(hhincome),
       NA,
@@ -946,30 +946,28 @@ identify the causal effect of college attendance.</p>
 </div>
 <div id="e-randomly-assigned-scholarships" class="section level2">
 <h2>e) Randomly assigned scholarships</h2>
-<p>If scholarship amounts are randomly assigned, then scholarship is
-independent of students’ potential outcomes and pre-existing
-characteristics. This makes the IV exogeneity assumption more
-credible.</p>
-<p>However, college attendance itself is not necessarily randomly
-assigned, because students still choose whether to attend college.
-Random scholarships therefore do not directly imply</p>
+<p>If scholarship amounts are randomly assigned, scholarship is
+independent of students’ potential outcomes and pre-treatment
+characteristics. Therefore, students who receive larger or smaller
+scholarships should not differ systematically in unobserved ability,
+motivation, family background, or other determinants of future
+income.</p>
+<p>This does not mean that college attendance itself is randomly
+assigned, because students still decide whether to attend college.
+Therefore, random scholarships do not directly imply</p>
 <p><span class="math display">\[
 E(Y_{0i} \mid D_i = 1) = E(Y_{0i} \mid D_i = 0).
 \]</span></p>
-<p>Instead, random scholarship assignment creates exogenous variation in
-college attendance. Under the IV assumptions, especially relevance and
-exogeneity, this variation can be used to estimate the causal effect of
-college attendance consistently.</p>
+<p>However, random scholarship assignment creates exogenous variation in
+college attendance. If scholarships affect the probability of attending
+college, the relevance assumption is satisfied. Because the scholarship
+amount is randomly assigned, the exogeneity assumption is more
+plausible. Under these IV assumptions, scholarship can be used as an
+instrument to estimate the causal effect of college attendance on
+income.</p>
 </div>
 <div id="f-2sls-estimation-model" class="section level2">
 <h2>f) 2SLS Estimation model</h2>
-<pre class="r"><code>library(lfe)</code></pre>
-<pre><code>## Loading required package: Matrix</code></pre>
-<pre><code>## 
-## Attaching package: &#39;Matrix&#39;</code></pre>
-<pre><code>## The following objects are masked from &#39;package:tidyr&#39;:
-## 
-##     expand, pack, unpack</code></pre>
 <pre class="r"><code># OLS with controls for comparison
 ols_controls &lt;- felm(income ~ college + hhincome + race + factor(year),
                      data = df_clean)
@@ -1213,18 +1211,6 @@ interaction_result &lt;- summary(heterogeneity_model)$coefficients[&quot;college
 interaction_result</code></pre>
 <pre><code>##   Estimate Std. Error    t value   Pr(&gt;|t|) 
 ##  1.1744234  1.1760740  0.9985965  0.3180044</code></pre>
-<pre class="r"><code># Cleaner output
-tibble(
-  Coefficient = &quot;college:white&quot;,
-  Estimate = interaction_result[&quot;Estimate&quot;],
-  Std_Error = interaction_result[&quot;Std. Error&quot;],
-  t_value = interaction_result[&quot;t value&quot;],
-  p_value = interaction_result[&quot;Pr(&gt;|t|)&quot;]
-)</code></pre>
-<pre><code>## # A tibble: 1 × 5
-##   Coefficient   Estimate Std_Error t_value p_value
-##   &lt;chr&gt;            &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
-## 1 college:white     1.17      1.18   0.999   0.318</code></pre>
 <p>The difference in the college income premium across race groups is
 captured by the interaction coefficient <span class="math inline">\(\beta_3\)</span> on <span class="math inline">\(college_i \times white_i\)</span>. The estimated
 interaction coefficient is approximately <span class="math inline">\(1.17\)</span>, with a p-value of about <span class="math inline">\(0.318\)</span>. Therefore, we do not reject</p>
@@ -1351,7 +1337,7 @@ APE_j =
 <div id="b-computation-and-interpretation" class="section level2">
 <h2>b) Computation and interpretation</h2>
 <pre class="r"><code>probit_model &lt;- glm(
-  college ~ hhincome + race,
+  college ~ hhincome + white, # using &#39;white&#39; instead of &#39;race&#39; according to assignment
   data = df_clean,
   family = binomial(link = &quot;probit&quot;)
 )
@@ -1359,14 +1345,14 @@ APE_j =
 summary(probit_model)</code></pre>
 <pre><code>## 
 ## Call:
-## glm(formula = college ~ hhincome + race, family = binomial(link = &quot;probit&quot;), 
+## glm(formula = college ~ hhincome + white, family = binomial(link = &quot;probit&quot;), 
 ##     data = df_clean)
 ## 
 ## Coefficients:
 ##               Estimate Std. Error z value Pr(&gt;|z|)    
 ## (Intercept) -0.0761256  0.0281037  -2.709 0.006754 ** 
 ## hhincome     0.0102740  0.0003923  26.190  &lt; 2e-16 ***
-## race        -0.1031611  0.0298313  -3.458 0.000544 ***
+## white       -0.1031611  0.0298313  -3.458 0.000544 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
@@ -1403,7 +1389,7 @@ values of the covariates.</p>
 <h2>c) Predicted probability</h2>
 <pre class="r"><code>individual &lt;- data.frame(
   hhincome = 80,
-  race = 1
+  white = 1
 )
 
 predicted_probability &lt;- predict(

@@ -11,6 +11,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(skimr)
+library(lfe)
 ```
 
 # Data Cleaning
@@ -30,7 +31,7 @@ df_clean <- df |>
     college = ifelse(college == -1, NA, college),
     income = ifelse(income == -9999999, NA, income),
     hhincome = ifelse(hhincome == -9999999, NA, hhincome),
-    white = race, # for Question 3
+   white = ifelse(race == 1, 1, 0), # white == 1, non-white otherwise, for Q3
     low_income = ifelse(
       is.na(hhincome),
       NA,
@@ -178,21 +179,19 @@ The estimated coefficient on $college_i$ falls once household income, race, and 
 
 ## e) Randomly assigned scholarships
 
-If scholarship amounts are randomly assigned, then scholarship is independent of students’ potential outcomes and pre-existing characteristics. This makes the IV exogeneity assumption more credible.
+If scholarship amounts are randomly assigned, scholarship is independent of students’ potential outcomes and pre-treatment characteristics. Therefore, students who receive larger or smaller scholarships should not differ systematically in unobserved ability, motivation, family background, or other determinants of future income.
 
-However, college attendance itself is not necessarily randomly assigned, because students still choose whether to attend college. Random scholarships therefore do not directly imply
+This does not mean that college attendance itself is randomly assigned, because students still decide whether to attend college. Therefore, random scholarships do not directly imply
 
 $$
 E(Y_{0i} \mid D_i = 1) = E(Y_{0i} \mid D_i = 0).
 $$
 
-Instead, random scholarship assignment creates exogenous variation in college attendance. Under the IV assumptions, especially relevance and exogeneity, this variation can be used to estimate the causal effect of college attendance consistently.
+However, random scholarship assignment creates exogenous variation in college attendance. If scholarships affect the probability of attending college, the relevance assumption is satisfied. Because the scholarship amount is randomly assigned, the exogeneity assumption is more plausible. Under these IV assumptions, scholarship can be used as an instrument to estimate the causal effect of college attendance on income.
 
 ## f) 2SLS Estimation model
 
 ```{r}
-library(lfe)
-
 # OLS with controls for comparison
 ols_controls <- felm(income ~ college + hhincome + race + factor(year),
                      data = df_clean)
@@ -313,15 +312,6 @@ Since income is measured in 1,000 USD, this means that college attendance is ass
 interaction_result <- summary(heterogeneity_model)$coefficients["college:white", ]
 
 interaction_result
-
-# Cleaner output
-tibble(
-  Coefficient = "college:white",
-  Estimate = interaction_result["Estimate"],
-  Std_Error = interaction_result["Std. Error"],
-  t_value = interaction_result["t value"],
-  p_value = interaction_result["Pr(>|t|)"]
-)
 ```
 
 The difference in the college income premium across race groups is captured by the interaction coefficient $\beta_3$ on $college_i \times white_i$. The estimated interaction coefficient is approximately $1.17$, with a p-value of about $0.318$. Therefore, we do not reject
@@ -397,7 +387,7 @@ $$
 
 ```{r}
 probit_model <- glm(
-  college ~ hhincome + race,
+  college ~ hhincome + white, # using 'white' instead of 'race' according to assignment
   data = df_clean,
   family = binomial(link = "probit")
 )
@@ -430,7 +420,7 @@ Thus, an increase in household income by 1,000 USD is associated with an increas
 ```{r}
 individual <- data.frame(
   hhincome = 80,
-  race = 1
+  white = 1
 )
 
 predicted_probability <- predict(
