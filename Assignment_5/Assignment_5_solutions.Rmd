@@ -374,33 +374,23 @@ The Logit coefficients are larger in absolute value than the Probit coefficients
 In the probit model,
 
 $$
-
 P(college_i = 1 \mid x_i) = \Phi(x_i'\beta),
-
 $$
 
 where $\Phi(\cdot)$ is the standard normal CDF. For a continuous variable $x_j$, the partial effect for individual $i$ is
 
 $$
-
 \frac{\partial P(college_i = 1 \mid x_i)}{\partial x_{ij}}
-
 =
-
 \phi(x_i'\beta)\beta_j,
-
 $$
 
 where $\phi(\cdot)$ is the standard normal density. The Average Partial Effect is therefore
 
 $$
-
 APE_j =
-
 \frac{1}{n}
-
 \sum_{i=1}^n
-
 \phi(x_i'\hat{\beta})\hat{\beta}_j.
 $$
 
@@ -431,9 +421,7 @@ ape_hhincome
 The estimated Average Partial Effect of $hhincome$ is approximately
 
 $$
-
 0.00318.
-
 $$
 
 Thus, an increase in household income by 1,000 USD is associated with an increase in the probability of attending college by about 0.318 percentage points on average, holding race constant. This is an average effect because, in a probit model, the marginal effect depends on the values of the covariates.
@@ -459,25 +447,19 @@ predicted_probability
 For an individual with
 
 $$
-
 hhincome = 80
-
 $$
 
 and
 
 $$
-
 race = 1,
-
 $$
 
 the predicted probability of attending college is approximately
 
 $$
-
 0.740.
-
 $$
 
 Therefore, the model predicts a college attendance probability of about 74.0%. This value lies between 0 and 1, as expected in a probit model.
