@@ -1,0 +1,16 @@
+---
+title: 'Data Analytics II: Assignment 5'
+author: "Aleksandar Maric, Akando Räderer"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Data Cleaning
+
+
+# Question 1: Descriptive Analysis
+
