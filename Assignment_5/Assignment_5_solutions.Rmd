@@ -9,14 +9,13 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(skimr)
 ```
 
 # Data Cleaning
 
 ```{r}
-rm(list = ls())
-library(tidyverse)
-library(skimr)
 # Load the data
 df <- read.csv("education_income-3.csv")
 
