@@ -442,7 +442,7 @@ $$
 and
 
 $$
-race = 1,
+white = 1,
 $$
 
 the predicted probability of attending college is approximately
